@@ -3,7 +3,8 @@ CloudFlare 扫描器
 
 ⚠️提示：本工具仅供学习和合法网络测速，请遵守当地法律法规，造成的一切后果自负。
 
-<img width="562" height="608" alt="cfs" src="https://github.com/user-attachments/assets/f6700c3a-484f-48d0-80b6-405f71987e45" />
+<img width="432" height="503" alt="cfs" src="https://github.com/user-attachments/assets/eed59f02-f373-4218-84f3-70d35390fbb7" />
+
 
 
 🚀 高效扫描：自动从 CloudFlare 官方 IP 段生成 IP 地址
