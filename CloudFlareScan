@@ -795,7 +795,7 @@ class IPv6ScanWorker(QThread):
 class CloudflareScanUI(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("CloudFlare Scan - 小琳解说")
+        self.setWindowTitle("CloudFlare Scan")
         
         self.resize(430, 800)
         self.setMinimumSize(410, 600)
