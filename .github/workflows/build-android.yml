@@ -1,12 +1,8 @@
-name: Build CloudFlareScan for Android
+name: Build CloudFlareScan for Android Analysis
 
 on:
   push:
     branches: [ main, master ]
-    paths:
-      - '**.py'
-      - 'requirements.txt'
-      - '.github/workflows/build-android.yml'
   workflow_dispatch:
 
 jobs:
@@ -22,66 +18,66 @@ jobs:
       with:
         python-version: '3.10'
         
-    - name: Install analysis dependencies
-      run: |
-        python -m pip install --upgrade pip
-        
     - name: Analyze project structure
       run: |
         echo "📁 项目文件分析:"
         ls -la
         echo ""
-        echo "📄 主文件分析:"
+        
+        echo "📄 主文件信息:"
         if [ -f "CloudFlareScan" ]; then
           echo "✅ 找到主文件 CloudFlareScan"
           file "CloudFlareScan"
-          echo "文件大小:" $(wc -l < "CloudFlareScan") "行"
+          echo "文件大小: $(wc -l < CloudFlareScan) 行"
         else
           echo "❌ 未找到主文件 CloudFlareScan"
+          exit 1
         fi
         
-    - name: Check Python compatibility
+    - name: Check Python dependencies
       run: |
-        echo "🐍 Python兼容性检查:"
+        echo "🐍 Python依赖分析:"
         python --version
         echo ""
-        echo "📋 尝试分析代码结构:"
+        
+        # 检查文件开头的导入语句
         if [ -f "CloudFlareScan" ]; then
-          # 重命名文件以进行语法检查
-          cp CloudFlareScan cloudflarescan.py
-          echo "代码前10行:"
-          head -10 cloudflarescan.py
-          echo ""
-          echo "导入的模块:"
-          grep "^import\|^from" cloudflarescan.py | head -5
+          echo "🔍 导入的模块:"
+          head -50 CloudFlareScan | grep -E "^(import|from)" | head -10 || echo "未找到导入语句"
         fi
         
-    - name: Generate Android migration report
+    - name: Create migration report
       run: |
-        cat > android-migration-report.md << 'EOF'
+        # 创建迁移分析报告
+        report_file="android-migration-report.md"
+        
+        cat > $report_file << 'REPORT_EOF'
 # CloudFlareScan Android 迁移分析报告
 
 ## 项目概况
 - **项目类型**: PySide6 桌面GUI应用程序
-- **主要技术栈**: PySide6, aiohttp, asyncio
 - **代码规模**: 1458行Python代码
+- **主要框架**: PySide6 (Qt for Python)
 
-## Android适配挑战
+## 技术架构分析
 
-### 1. 框架兼容性问题
-- ❌ **PySide6不兼容Android**: 需要替换为Kivy或BeeWare
-- ❌ **异步架构复杂**: asyncio在移动端需要特殊处理
-- ❌ **桌面特定API**: 需要重写GUI层
+### 核心依赖
+- PySide6: GUI框架
+- aiohttp: 异步HTTP客户端
+- asyncio: 异步编程库
+- ipaddress: IP地址处理
 
-### 2. 技术架构差异
-- 事件循环: 桌面事件循环 → 移动端生命周期
-- 网络请求: 需要适配移动端网络限制
-- 界面布局: 需要响应式设计
+### Android适配挑战
 
-### 3. 依赖管理
-- PySide6 → Kivy (移动端兼容)
-- 保持aiohttp网络库
-- 简化并发模型
+#### 1. 框架兼容性
+❌ **PySide6不兼容Android**: 需要替换为Kivy或BeeWare
+❌ **桌面特定API**: 需要重写GUI层
+❌ **事件循环差异**: 桌面事件循环 → 移动端生命周期
+
+#### 2. 技术限制
+- 异步网络请求在移动端需要特殊处理
+- 移动端网络权限和限制
+- 性能优化要求更高
 
 ## 迁移建议方案
 
