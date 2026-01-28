@@ -10,115 +10,79 @@ on:
   workflow_dispatch:
 
 jobs:
-  android-prepare:
+  android-analysis:
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        python-version: ['3.8', '3.9', '3.10']
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: '3.10'
         
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
-          git \
-          openjdk-11-jdk \
-          unzip \
-          wget \
-          curl
-        
-    - name: Install Python dependencies
+    - name: Install analysis dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install buildozer kivy
         
     - name: Analyze project structure
       run: |
-        echo "📁 项目结构分析:"
+        echo "📁 项目文件分析:"
         ls -la
         echo ""
-        echo "📄 主文件信息:"
+        echo "📄 主文件分析:"
         if [ -f "CloudFlareScan" ]; then
-          echo "找到主文件 CloudFlareScan"
-          file "CloudFlareScan" | head -5
+          echo "✅ 找到主文件 CloudFlareScan"
+          file "CloudFlareScan"
+          echo "文件大小:" $(wc -l < "CloudFlareScan") "行"
         else
-          echo "未找到主文件 CloudFlareScan"
+          echo "❌ 未找到主文件 CloudFlareScan"
         fi
         
-    - name: Create Android adaptation analysis
+    - name: Check Python compatibility
       run: |
-        echo "## Android 适配分析报告" > android-analysis.md
-        echo "" >> android-analysis.md
-        echo "### 当前项目状态" >> android-analysis.md
-        echo "- **项目类型**: PySide6 桌面GUI应用" >> android-analysis.md
-        echo "- **主要依赖**: PySide6, aiohttp, asyncio" >> android-analysis.md
-        echo "- **架构**: 同步+异步混合" >> android-analysis.md
-        echo "" >> android-analysis.md
-        echo "### Android 适配挑战" >> android-analysis.md
-        echo "1. **PySide6不兼容**: 需要替换为Kivy" >> android-analysis.md
-        echo "2. **异步架构**: 需要重构为移动端友好模式" >> android-analysis.md
-        echo "3. **网络权限**: 需要Android网络权限配置" >> android-analysis.md
-        echo "" >> android-analysis.md
-        echo "### 建议方案" >> android-analysis.md
-        echo "1. 使用Kivy重写UI层" >> android-analysis.md
-        echo "2. 保留核心扫描逻辑" >> android-analysis.md
-        echo "3. 简化并发模型" >> android-analysis.md
+        echo "🐍 Python兼容性检查:"
+        python --version
+        echo ""
+        echo "📋 尝试分析代码结构:"
+        if [ -f "CloudFlareScan" ]; then
+          # 重命名文件以进行语法检查
+          cp CloudFlareScan cloudflarescan.py
+          echo "代码前10行:"
+          head -10 cloudflarescan.py
+          echo ""
+          echo "导入的模块:"
+          grep "^import\|^from" cloudflarescan.py | head -5
+        fi
         
-    - name: Create basic Kivy test file
+    - name: Generate Android migration report
       run: |
-        # 创建简单的Kivy测试文件
-        cat > test_kivy.py << 'EOF'
-"""
-CloudFlareScan Android 适配测试
-简化版用于验证Kivy环境
-"""
+        cat > android-migration-report.md << 'EOF'
+# CloudFlareScan Android 迁移分析报告
 
-import kivy
-from kivy.app import App
-from kivy.uix.label import Label
+## 项目概况
+- **项目类型**: PySide6 桌面GUI应用程序
+- **主要技术栈**: PySide6, aiohttp, asyncio
+- **代码规模**: 1458行Python代码
 
-class CloudFlareScanTest(App):
-    def build(self):
-        return Label(text='CloudFlareScan Android版本\n环境测试通过')
+## Android适配挑战
 
-if __name__ == '__main__':
-    CloudFlareScanTest().run()
-EOF
-        
-    - name: Test Kivy environment
-      run: |
-        echo "测试Kivy环境..."
-        python -c "import kivy; print('Kivy版本:', kivy.__version__)" || echo "Kivy导入失败"
-        
-    - name: Generate adaptation report
-      run: |
-        echo "✅ Android构建环境准备完成" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 项目分析结果" >> $GITHUB_STEP_SUMMARY
-        echo "- **当前架构**: PySide6桌面应用" >> $GITHUB_STEP_SUMMARY
-        echo "- **Android适配**: 需要重大重构" >> $GITHUB_STEP_SUMMARY
-        echo "- **建议方案**: 使用Kivy框架重写" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 下一步行动" >> $GITHUB_STEP_SUMMARY
-        echo "1. 设计移动端UI布局" >> $GITHUB_STEP_SUMMARY
-        echo "2. 重构核心扫描逻辑" >> $GITHUB_STEP_SUMMARY
-        echo "3. 配置Buildozer构建" >> $GITHUB_STEP_SUMMARY
-        
-    - name: Upload analysis artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: android-analysis-${{ matrix.python-version }}
-        path: |
-          android-analysis.md
-          test_kivy.py
-        retention-days: 7
+### 1. 框架兼容性问题
+- ❌ **PySide6不兼容Android**: 需要替换为Kivy或BeeWare
+- ❌ **异步架构复杂**: asyncio在移动端需要特殊处理
+- ❌ **桌面特定API**: 需要重写GUI层
+
+### 2. 技术架构差异
+- 事件循环: 桌面事件循环 → 移动端生命周期
+- 网络请求: 需要适配移动端网络限制
+- 界面布局: 需要响应式设计
+
+### 3. 依赖管理
+- PySide6 → Kivy (移动端兼容)
+- 保持aiohttp网络库
+- 简化并发模型
+
+## 迁移建议方案
+
+### 方案A: Kivy重写 (推荐)
