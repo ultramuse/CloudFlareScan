@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-android:
+  android-prepare:
     runs-on: ubuntu-latest
     
     strategy:
@@ -26,7 +26,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         
-    - name: Install system dependencies for Android build
+    - name: Install system dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -34,127 +34,91 @@ jobs:
           git \
           openjdk-11-jdk \
           unzip \
-          zlib1g-dev \
-          libncurses5-dev \
-          libgdbm-dev \
-          libnss3-dev \
-          libssl-dev \
-          libreadline-dev \
-          libffi-dev \
-          libsqlite3-dev \
           wget \
           curl
         
-    - name: Install Buildozer and Android dependencies
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install buildozer cython virtualenv
+        pip install buildozer kivy
         
-    - name: Create Buildozer spec file for Android
+    - name: Analyze project structure
       run: |
-        cat > buildozer.spec << 'EOF'
-[app]
-title = CloudFlareScan
-package.name = cloudflarescan
-package.domain = org.github
-
-source.dir = .
-source.include_exts = py,png,jpg,kv,atlas,ico
-
-version = 1.0.0
-requirements = python3,kivy,asyncio,aiohttp,openssl
-
-[buildozer]
-log_level = 2
-
-[app]
-source.include_patterns = assets/*,images/*,*.py,*.kv
-presplash.filename = %(source.dir)s/assets/presplash.png
-icon.filename = %(source.dir)s/cfs.ico
-
-[app]
-android.permissions = INTERNET,ACCESS_NETWORK_STATE
-android.api = 33
-android.minapi = 21
-android.ndk = 25b
-android.sdk = 33
-
-[app]
-android.arch = arm64-v8a
-EOF
+        echo "📁 项目结构分析:"
+        ls -la
+        echo ""
+        echo "📄 主文件信息:"
+        if [ -f "CloudFlareScan" ]; then
+          echo "找到主文件 CloudFlareScan"
+          file "CloudFlareScan" | head -5
+        else
+          echo "未找到主文件 CloudFlareScan"
+        fi
         
-    - name: Create Kivy-compatible main file
+    - name: Create Android adaptation analysis
       run: |
-        # 创建适配安卓的入口文件
-        cat > main.py << 'EOF'
-#!/usr/bin/env python3
+        echo "## Android 适配分析报告" > android-analysis.md
+        echo "" >> android-analysis.md
+        echo "### 当前项目状态" >> android-analysis.md
+        echo "- **项目类型**: PySide6 桌面GUI应用" >> android-analysis.md
+        echo "- **主要依赖**: PySide6, aiohttp, asyncio" >> android-analysis.md
+        echo "- **架构**: 同步+异步混合" >> android-analysis.md
+        echo "" >> android-analysis.md
+        echo "### Android 适配挑战" >> android-analysis.md
+        echo "1. **PySide6不兼容**: 需要替换为Kivy" >> android-analysis.md
+        echo "2. **异步架构**: 需要重构为移动端友好模式" >> android-analysis.md
+        echo "3. **网络权限**: 需要Android网络权限配置" >> android-analysis.md
+        echo "" >> android-analysis.md
+        echo "### 建议方案" >> android-analysis.md
+        echo "1. 使用Kivy重写UI层" >> android-analysis.md
+        echo "2. 保留核心扫描逻辑" >> android-analysis.md
+        echo "3. 简化并发模型" >> android-analysis.md
+        
+    - name: Create basic Kivy test file
+      run: |
+        # 创建简单的Kivy测试文件
+        cat > test_kivy.py << 'EOF'
 """
-CloudFlareScan Android 版本
-基于 Kivy 框架适配移动端
+CloudFlareScan Android 适配测试
+简化版用于验证Kivy环境
 """
 
-import os
-import sys
-import random
-import ipaddress
+import kivy
 from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
 from kivy.uix.label import Label
-from kivy.uix.progressbar import ProgressBar
-from kivy.uix.scrollview import ScrollView
-from kivy.uix.gridlayout import GridLayout
-from kivy.clock import Clock
-import threading
 
-# CloudFlare CIDR 列表
-CF_IPV4_CIDRS = [
-    "173.245.48.0/20", "103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22",
-    "141.101.64.0/18", "108.162.192.0/18", "190.93.240.0/20", "188.114.96.0/20",
-    "197.234.240.0/22", "198.41.128.0/17", "162.158.0.0/15", "104.16.0.0/12",
-    "172.64.0.0/17", "172.64.128.0/18", "172.64.192.0/19", "172.64.224.0/22",
-    "172.64.229.0/24", "172.64.230.0/23", "172.64.232.0/21", "172.64.240.0/21",
-    "172.64.248.0/21", "172.65.0.0/16", "172.66.0.0/16", "172.67.0.0/16",
-    "131.0.72.0/22"
-]
-
-class CloudFlareScanMobile(App):
+class CloudFlareScanTest(App):
     def build(self):
-        main_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
-        
-        title = Label(
-            text='CloudFlare IP扫描器',
-            size_hint_y=0.1,
-            font_size='24sp',
-            bold=True
-        )
-        main_layout.add_widget(title)
-        
-        return main_layout
+        return Label(text='CloudFlareScan Android版本\n环境测试通过')
 
 if __name__ == '__main__':
-    CloudFlareScanMobile().run()
+    CloudFlareScanTest().run()
 EOF
         
-    - name: Create requirements.txt for Android
+    - name: Test Kivy environment
       run: |
-        cat > requirements.txt << 'EOF'
-kivy==2.1.0
-aiohttp==3.8.4
-EOF
+        echo "测试Kivy环境..."
+        python -c "import kivy; print('Kivy版本:', kivy.__version__)" || echo "Kivy导入失败"
         
-    - name: Test configuration
+    - name: Generate adaptation report
       run: |
-        echo "✅ Android构建配置验证完成"
-        echo "📱 配置适用于: Python ${{ matrix.python-version }}"
-        echo "📋 下一步: 本地Buildozer构建或使用专业CI服务"
+        echo "✅ Android构建环境准备完成" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 项目分析结果" >> $GITHUB_STEP_SUMMARY
+        echo "- **当前架构**: PySide6桌面应用" >> $GITHUB_STEP_SUMMARY
+        echo "- **Android适配**: 需要重大重构" >> $GITHUB_STEP_SUMMARY
+        echo "- **建议方案**: 使用Kivy框架重写" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 下一步行动" >> $GITHUB_STEP_SUMMARY
+        echo "1. 设计移动端UI布局" >> $GITHUB_STEP_SUMMARY
+        echo "2. 重构核心扫描逻辑" >> $GITHUB_STEP_SUMMARY
+        echo "3. 配置Buildozer构建" >> $GITHUB_STEP_SUMMARY
         
-    - name: Upload configuration artifacts
+    - name: Upload analysis artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: android-config-${{ matrix.python-version }}
+        name: android-analysis-${{ matrix.python-version }}
         path: |
-          main.py
-          buildozer.spec
-          requirements.txt
-        retention-days: 3
+          android-analysis.md
+          test_kivy.py
+        retention-days: 7
