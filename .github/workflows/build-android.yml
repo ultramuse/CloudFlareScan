@@ -33,7 +33,7 @@ jobs:
           exit 1
         fi
         
-    - name: Check Python code
+    - name: Check Python code structure
       run: |
         echo "Python代码分析:"
         python --version
@@ -51,7 +51,7 @@ jobs:
           grep -E '^(import|from)' CloudFlareScan | head -5 || echo "未找到导入语句"
         fi
         
-    - name: Generate compatibility report
+    - name: Generate Android compatibility report
       run: |
         REPORT_FILE="android-compatibility.md"
         
@@ -68,13 +68,13 @@ jobs:
         echo "## Android适配评估" >> $REPORT_FILE
         echo "" >> $REPORT_FILE
         
-        echo "### 不兼容组件" >> $REPORT_FILE
-        echo "1. **PySide6**: 不兼容Android，需要替换为Kivy" >> $REPORT_FILE
+        echo "### ❌ 不兼容组件" >> $REPORT_FILE
+        echo "1. **PySide6框架**: 不兼容Android，需要替换为Kivy" >> $REPORT_FILE
         echo "2. **桌面特定API**: 需要完全重写UI层" >> $REPORT_FILE
         echo "3. **事件循环**: 需要适配移动端生命周期" >> $REPORT_FILE
         echo "" >> $REPORT_FILE
         
-        echo "### 可复用组件" >> $REPORT_FILE
+        echo "### ✅ 可复用组件" >> $REPORT_FILE
         echo "1. **核心算法**: IP扫描逻辑可复用" >> $REPORT_FILE
         echo "2. **网络请求**: aiohttp逻辑可适配" >> $REPORT_FILE
         echo "3. **数据处理**: CIDR解析和IP生成逻辑" >> $REPORT_FILE
@@ -85,6 +85,7 @@ jobs:
         
         echo "### 方案A: Kivy重写 (推荐)" >> $REPORT_FILE
         echo '```python' >> $REPORT_FILE
+        echo "# 基础Kivy架构" >> $REPORT_FILE
         echo "from kivy.app import App" >> $REPORT_FILE
         echo "from kivy.uix.boxlayout import BoxLayout" >> $REPORT_FILE
         echo "" >> $REPORT_FILE
@@ -106,19 +107,21 @@ jobs:
         echo "4. 使用Buildozer构建" >> $REPORT_FILE
         echo "" >> $REPORT_FILE
         
-        echo "报告生成完成: $REPORT_FILE"
+        echo "✅ 报告生成完成: $REPORT_FILE"
         
-    - name: Create basic files
+    - name: Create basic template files
       run: |
+        # 创建依赖配置文件
         echo "kivy==2.1.0" > requirements-android.txt
         echo "aiohttp==3.8.4" >> requirements-android.txt
         
+        # 创建基础测试脚本
         cat > test_basic.py << 'EOF'
-print("基础环境测试")
-print("Python版本检查通过")
+print("Android兼容性测试")
+print("Python环境检查通过")
 EOF
         
-    - name: Upload results
+    - name: Upload analysis results
       uses: actions/upload-artifact@v4
       with:
         name: android-analysis-results
