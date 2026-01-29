@@ -127,17 +127,3 @@ EOF
           requirements-android.txt
           test_basic.py
         retention-days: 7
-        
-    - name: Create summary
-      run: |
-        echo "## Android兼容性分析完成" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 分析结果" >> $GITHUB_STEP_SUMMARY
-        echo "- **项目类型**: PySide6桌面应用" >> $GITHUB_STEP_SUMMARY
-        echo "- **Android适配**: 需要重大重构" >> $GITHUB_STEP_SUMMARY
-        echo "- **建议方案**: 使用Kivy框架重写" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 生成的文件" >> $GITHUB_STEP_SUMMARY
-        echo "1. 兼容性分析报告" >> $GITHUB_STEP_SUMMARY
-        echo "2. 依赖配置模板" >> $GITHUB_STEP_SUMMARY
-        echo "3. 基础测试脚本" >> $GITHUB_STEP_SUMMARY
