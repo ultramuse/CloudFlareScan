@@ -23,5 +23,4 @@ jobs:
         pip install pyinstaller pyside6 aiohttp
     
     - name: Build executable with PyInstaller
-      run: |
-        pyinstaller --onefile --icon=cfscan.ico --name CloudFlareScan --scripts CloudFlareScan
+      run: pyinstaller --onefile --icon=cfscan.ico --name CloudFlareScan CloudFlareScan
