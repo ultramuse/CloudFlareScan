@@ -7,30 +7,28 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest  # 使用Windows环境
+    runs-on: windows-latest
+    
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.10'  # 使用稳定Python版本
+        python-version: '3.10'
     
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pyinstaller  # 安装打包工具
-        # 如果有requirements.txt，取消下面的注释
-        # pip install -r requirements.txt
+        pip install pyinstaller requests
     
     - name: Build executable with PyInstaller
       run: |
-        pyinstaller --onefile --icon=cfscan.ico CloudFlareScan.py  # 关键命令：指定图标和主脚本
-        # 如果主脚本名不同，请替换 `CloudFlareScan.py` 为实际文件名
+        pyinstaller --onefile --icon=cfscan.ico --name CloudFlareScan CloudFlareScan.py
     
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: CloudFlareScan.exe  # artifact名称
-        path: dist/CloudFlareScan.exe  # exe文件路径
+        name: CloudFlareScan.exe
+        path: dist/CloudFlareScan.exe
