@@ -25,7 +25,7 @@ jobs:
     
     - name: Build executable with PyInstaller
       run: |
-        pyinstaller --onefile --icon=cfscan.ico --name CloudFlareScan CloudFlareScan.py
+        pyinstaller --onefile --icon=cfscan.ico --name CloudFlareScan CloudFlareScan
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
