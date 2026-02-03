@@ -1,70 +1,36 @@
-name: Build CloudFlareScan with Icon
+name: Build Windows Executable
 
 on:
   push:
-    branches: [ "main" ]
-  workflow_dispatch:  # 允许手动触发
+    branches: [ main ]
+  workflow_dispatch:  # 支持手动触发
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build:
+    runs-on: windows-latest  # 使用Windows环境
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up Go
-      uses: actions/setup-go@v4
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        go-version: '1.21'
-        
-    - name: Initialize Go Modules (if needed)
+        python-version: '3.10'  # 使用稳定Python版本
+    
+    - name: Install dependencies
       run: |
-        # 检查是否已有 go.mod 文件
-        if (Test-Path "go.mod") {
-          Write-Output "✅ go.mod 文件已存在"
-          # 如果已有 go.mod，生成 go.sum
-          go mod tidy
-        } else {
-          Write-Output "🔄 创建 go.mod 文件"
-          go mod init github.com/ultramuse/CloudFlareScan
-          go mod tidy
-        }
-      
-    - name: Verify icon file exists
+        python -m pip install --upgrade pip
+        pip install pyinstaller  # 安装打包工具
+        # 如果有requirements.txt，取消下面的注释
+        # pip install -r requirements.txt
+    
+    - name: Build executable with PyInstaller
       run: |
-        if (Test-Path "cfscan.ico") {
-          Write-Output "✅ 图标文件 cfscan.ico 存在"
-        } else {
-          Write-Error "❌ 图标文件 cfscan.ico 不存在"
-          exit 1
-        }
-      
-    - name: Install rsrc tool for icon embedding
-      run: go install github.com/akavel/rsrc@latest
-      
-    - name: Generate Windows resource file
-      run: |
-        rsrc -arch amd64 -ico cfscan.ico -o icon.syso
-        Write-Output "✅ 资源文件 icon.syso 已生成"
-      
-    - name: Build CloudFlareScan executable with icon
-      run: |
-        go build -o CloudFlareScan.exe CloudFlareScan
-        Write-Output "✅ 编译完成，生成 CloudFlareScan.exe"
-        
-    - name: Verify executable
-      run: |
-        if (Test-Path "CloudFlareScan.exe") {
-          Write-Output "✅ 可执行文件创建成功"
-          Get-Item CloudFlareScan.exe | Format-List Name, Length, LastWriteTime
-        } else {
-          Write-Error "❌ 可执行文件创建失败"
-          exit 1
-        }
-        
-    - name: Upload Windows Executable
-      uses: actions/upload-artifact@v4
+        pyinstaller --onefile --icon=cfscan.ico CloudFlareScan.py  # 关键命令：指定图标和主脚本
+        # 如果主脚本名不同，请替换 `CloudFlareScan.py` 为实际文件名
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
       with:
-        name: CloudFlareScan-Windows-With-Icon
-        path: CloudFlareScan.exe
-        retention-days: 30
+        name: CloudFlareScan.exe  # artifact名称
+        path: dist/CloudFlareScan.exe  # exe文件路径
