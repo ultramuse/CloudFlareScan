@@ -17,6 +17,19 @@ jobs:
       with:
         go-version: '1.21'
         
+    - name: Initialize Go Modules (if needed)
+      run: |
+        # 检查是否已有 go.mod 文件
+        if (Test-Path "go.mod") {
+          Write-Output "✅ go.mod 文件已存在"
+          # 如果已有 go.mod，生成 go.sum
+          go mod tidy
+        } else {
+          Write-Output "🔄 创建 go.mod 文件"
+          go mod init github.com/ultramuse/CloudFlareScan
+          go mod tidy
+        }
+      
     - name: Verify icon file exists
       run: |
         if (Test-Path "cfscan.ico") {
