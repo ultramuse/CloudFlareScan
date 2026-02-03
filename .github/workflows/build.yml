@@ -24,25 +24,18 @@ jobs:
     
     - name: Build executable with PyInstaller
       run: |
-        echo "=== 当前目录文件 ==="
-        dir
+        echo "=== 构建脚本目录 ==="
+        Get-ChildItem
         echo ""
         echo "=== 开始构建 ==="
         pyinstaller --onefile --windowed --icon=cfscan.ico --name CloudFlareScan CloudFlareScan
         echo ""
-        echo "=== 构建后的文件 ==="
-        dir dist
-    
-    - name: List all generated files
-      run: |
-        echo "=== 所有文件 ==="
-        dir /s /b
-        echo ""
-        echo "=== dist目录内容 ==="
-        dir dist
+        echo "=== 构建结果 ==="
+        Get-ChildItem -Path .\dist -ErrorAction SilentlyContinue
     
     - name: Upload executable
       uses: actions/upload-artifact@v4
       with:
         name: CloudFlareScan-EXE
         path: dist/CloudFlareScan.exe
+        retention-days: 1
