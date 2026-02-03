@@ -130,7 +130,7 @@ AIRPORT_CODES = {
     "JNB": "约翰内斯堡", "CPT": "开普敦", "CAI": "开罗",
 }
 
-PORT_OPTIONS = ["443", "2053", "2083", "2087", "2096", "8443"]
+PORT_OPTIONS = ["80"，"8080"，"8880"，"2052"，"2082"，"2086"，"2095","443", "2053", "2083", "2087", "2096", "8443"]
 
 def get_iata_code_from_ip(ip: str, timeout: int = 3) -> Optional[str]:
     test_host = "speed.cloudflare.com"
@@ -853,7 +853,7 @@ class IPv6ScanWorker(QThread):
 class CloudflareScanUI(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("CloudFlare Scan - 小琳解说 v2.0")
+        self.setWindowTitle("CloudFlare Scan v2.0")
         
         self.resize(450, 800)
         self.setMinimumSize(430, 600)
