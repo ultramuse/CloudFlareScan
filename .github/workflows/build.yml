@@ -2,16 +2,15 @@ name: Build Windows Executable
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:  # 支持手动触发
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   build:
     runs-on: windows-latest
-    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
     
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -21,14 +20,8 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pyinstaller requests
+        pip install pyinstaller pyside6 aiohttp
     
     - name: Build executable with PyInstaller
       run: |
-        pyinstaller --onefile --icon=cfscan.ico --name CloudFlareScan CloudFlareScan
-    
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: CloudFlareScan.exe
-        path: dist/CloudFlareScan.exe
+        pyinstaller --onefile --icon=cfscan.ico --name CloudFlareScan --scripts CloudFlareScan
